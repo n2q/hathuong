@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Worker {
+  id          String       @id @default(cuid())
+  name        String
+  age         Int?
+  address     String?
+  phone       String?
+  status      WorkerStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignments Assignment[]
+}
+
+model Owner {
+  id        String   @id @default(cuid())
+  name      String
+  age       Int?
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  jobs      Job[]
+}
+
+model Job {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  location    String?
+  startDate   DateTime
+  endDate     DateTime?
+  ownerRate   Decimal      @db.Decimal(10, 2)
+  workerRate  Decimal      @db.Decimal(10, 2)
+  status      JobStatus    @default(ACTIVE)
+  ownerId     String
+  owner       Owner        @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignments Assignment[]
+}
+
+model Assignment {
+  id         String      @id @default(cuid())
+  jobId      String
+  workerId   String
+  job        Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  worker     Worker      @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime    @default(now())
+  timesheets Timesheet[]
+
+  @@unique([jobId, workerId])
+}
+
+model Timesheet {
+  id           String           @id @default(cuid())
+  assignmentId String
+  date         DateTime         @db.Date
+  status       AttendanceStatus @default(PRESENT)
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([assignmentId, date])
+}
+
+model Expense {
+  id        String   @id @default(cuid())
+  title     String
+  amount    Decimal  @db.Decimal(10, 2)
+  category  String
+  date      DateTime @db.Date
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum WorkerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum JobStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
