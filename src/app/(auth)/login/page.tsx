@@ -23,7 +23,7 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Email hoặc mật khẩu không đúng");
+      setError(`Email hoặc mật khẩu không đúng (${result.error})`);
       setLoading(false);
     } else {
       router.push("/");
