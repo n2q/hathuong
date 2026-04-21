@@ -4,6 +4,7 @@ import Header from "@/components/layout/Header";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { Plus, Pencil, Trash2, Search, Fuel, UtensilsCrossed, Wrench, Car, Tag, Receipt } from "lucide-react";
+import { SkeletonCard, SkeletonRow } from "@/components/ui/Skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface Expense {
@@ -40,13 +41,16 @@ export default function ExpensesPage() {
   const [editExpense, setEditExpense] = useState<Expense | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const fetchExpenses = useCallback(async () => {
+    setFetching(true);
     const params = new URLSearchParams({ from, to });
     if (filterCategory) params.set("category", filterCategory);
     const res = await fetch(`/api/expenses?${params}`);
     setExpenses(await res.json());
+    setFetching(false);
   }, [from, to, filterCategory]);
 
   useEffect(() => { fetchExpenses(); }, [fetchExpenses]);
@@ -140,10 +144,11 @@ export default function ExpensesPage() {
 
         {/* Mobile + desktop list */}
         <div className="space-y-2 md:hidden">
-          {filtered.length === 0 && (
+          {fetching ? (
+            [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+          ) : filtered.length === 0 ? (
             <p className="text-center py-10 text-gray-400 text-sm">Chưa có chi phí nào</p>
-          )}
-          {filtered.map((e) => {
+          ) : filtered.map((e) => {
             const cat = getCat(e.category);
             const Icon = cat.icon;
             return (
@@ -183,8 +188,11 @@ export default function ExpensesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">Chưa có chi phí nào</td></tr>}
-              {filtered.map((e) => {
+              {fetching ? (
+                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={6} />)
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">Chưa có chi phí nào</td></tr>
+              ) : filtered.map((e) => {
                 const cat = getCat(e.category);
                 const Icon = cat.icon;
                 return (

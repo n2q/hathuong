@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import { Plus, Pencil, Trash2, Search, Phone, MapPin } from "lucide-react";
+import { SkeletonCard, SkeletonRow } from "@/components/ui/Skeleton";
 
 interface Worker {
   id: string;
@@ -25,11 +26,13 @@ export default function WorkersPage() {
   const [editWorker, setEditWorker] = useState<Worker | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   async function fetchWorkers() {
     const res = await fetch("/api/workers");
     setWorkers(await res.json());
+    setFetching(false);
   }
 
   useEffect(() => { fetchWorkers(); }, []);
@@ -92,10 +95,11 @@ export default function WorkersPage() {
 
         {/* Mobile cards */}
         <div className="md:hidden space-y-3">
-          {filtered.length === 0 && (
+          {fetching ? (
+            [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+          ) : filtered.length === 0 ? (
             <p className="text-center py-12 text-gray-400 text-sm">Chưa có công nhân nào</p>
-          )}
-          {filtered.map((w) => (
+          ) : filtered.map((w) => (
             <div key={w.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
@@ -150,10 +154,11 @@ export default function WorkersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 && (
+              {fetching ? (
+                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={7} />)
+              ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm">Chưa có công nhân nào</td></tr>
-              )}
-              {filtered.map((w) => (
+              ) : filtered.map((w) => (
                 <tr key={w.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">{w.name}</td>
                   <td className="px-6 py-4 text-gray-600 text-sm">{w.age || "—"}</td>

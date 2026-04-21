@@ -17,24 +17,29 @@ export default function TimesheetsPage() {
   const [attendance, setAttendance] = useState<Record<string, "PRESENT" | "ABSENT">>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
 
   useEffect(() => {
-    fetch("/api/jobs?status=ACTIVE").then((r) => r.json()).then(setJobs);
+    fetch("/api/jobs?status=ACTIVE")
+      .then((r) => r.ok ? r.json() : [])
+      .then(setJobs);
   }, []);
 
   const loadAttendance = useCallback(async () => {
     if (!selectedJob) return;
+    setLoadingAssignments(true);
     const [assignRes, tsRes] = await Promise.all([
       fetch(`/api/assignments?jobId=${selectedJob}`),
       fetch(`/api/timesheets?jobId=${selectedJob}&date=${selectedDate}`),
     ]);
-    const assignData: Assignment[] = await assignRes.json();
-    const tsData: { assignmentId: string; status: "PRESENT" | "ABSENT" }[] = await tsRes.json();
+    const assignData: Assignment[] = assignRes.ok ? await assignRes.json() : [];
+    const tsData: { assignmentId: string; status: "PRESENT" | "ABSENT" }[] = tsRes.ok ? await tsRes.json() : [];
     setAssignments(assignData);
     const map: Record<string, "PRESENT" | "ABSENT"> = {};
     for (const a of assignData) map[a.id] = "PRESENT";
     for (const ts of tsData) map[ts.assignmentId] = ts.status;
     setAttendance(map);
+    setLoadingAssignments(false);
   }, [selectedJob, selectedDate]);
 
   useEffect(() => { loadAttendance(); }, [loadAttendance]);
@@ -84,13 +89,19 @@ export default function TimesheetsPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Ngày chấm công</label>
             <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full appearance-none border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
 
         {!selectedJob ? (
           <div className="bg-white rounded-xl p-10 text-center text-gray-400 border border-gray-100 shadow-sm">
             <p className="text-sm">Chọn công việc để bắt đầu chấm công</p>
+          </div>
+        ) : loadingAssignments ? (
+          <div className="space-y-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse h-14 bg-gray-200 rounded-xl" />
+            ))}
           </div>
         ) : assignments.length === 0 ? (
           <div className="bg-white rounded-xl p-10 text-center text-gray-400 border border-gray-100 shadow-sm">
@@ -118,11 +129,10 @@ export default function TimesheetsPage() {
                     key={a.id}
                     type="button"
                     onClick={() => toggle(a.id)}
-                    className={`w-full flex items-center justify-between px-4 py-4 rounded-xl border-2 transition-colors text-left ${
-                      isPresent
+                    className={`w-full flex items-center justify-between px-4 py-4 rounded-xl border-2 transition-colors text-left ${isPresent
                         ? "border-green-300 bg-green-50"
                         : "border-red-200 bg-red-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       {isPresent
@@ -131,9 +141,8 @@ export default function TimesheetsPage() {
                       }
                       <span className="font-medium text-gray-900">{a.worker.name}</span>
                     </div>
-                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                      isPresent ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-                    }`}>
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${isPresent ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+                      }`}>
                       {isPresent ? "Có mặt" : "Vắng mặt"}
                     </span>
                   </button>

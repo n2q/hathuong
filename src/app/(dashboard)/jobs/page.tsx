@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import { Plus, Pencil, Trash2, Search, MapPin, Users } from "lucide-react";
+import { SkeletonCard, SkeletonRow } from "@/components/ui/Skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import AssignWorkerModal from "@/components/AssignWorkerModal";
 
@@ -32,11 +33,13 @@ export default function JobsPage() {
   const [editJob, setEditJob] = useState<Job | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   async function fetchJobs() {
     const res = await fetch("/api/jobs");
     setJobs(await res.json());
+    setFetching(false);
   }
 
   useEffect(() => {
@@ -87,8 +90,11 @@ export default function JobsPage() {
 
         {/* Mobile cards */}
         <div className="md:hidden space-y-3">
-          {filtered.length === 0 && <p className="text-center py-12 text-gray-400 text-sm">Chưa có công việc nào</p>}
-          {filtered.map((j) => (
+          {fetching ? (
+            [...Array(4)].map((_, i) => <SkeletonCard key={i} buttons={3} />)
+          ) : filtered.length === 0 ? (
+            <p className="text-center py-12 text-gray-400 text-sm">Chưa có công việc nào</p>
+          ) : filtered.map((j) => (
             <div key={j.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
@@ -139,8 +145,11 @@ export default function JobsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 && <tr><td colSpan={8} className="text-center py-12 text-gray-400 text-sm">Chưa có công việc nào</td></tr>}
-              {filtered.map((j) => (
+              {fetching ? (
+                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={8} />)
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={8} className="text-center py-12 text-gray-400 text-sm">Chưa có công việc nào</td></tr>
+              ) : filtered.map((j) => (
                 <tr key={j.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">{j.name}</td>
                   <td className="px-6 py-4 text-gray-600 text-sm">{j.owner.name}</td>

@@ -4,6 +4,7 @@ import Header from "@/components/layout/Header";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { Plus, Pencil, Trash2, Search, Phone, MapPin, Briefcase } from "lucide-react";
+import { SkeletonCard, SkeletonRow } from "@/components/ui/Skeleton";
 
 interface Owner {
   id: string;
@@ -23,11 +24,13 @@ export default function OwnersPage() {
   const [editOwner, setEditOwner] = useState<Owner | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   async function fetchOwners() {
     const res = await fetch("/api/owners");
     setOwners(await res.json());
+    setFetching(false);
   }
 
   useEffect(() => { fetchOwners(); }, []);
@@ -72,8 +75,11 @@ export default function OwnersPage() {
 
         {/* Mobile cards */}
         <div className="md:hidden space-y-3">
-          {filtered.length === 0 && <p className="text-center py-12 text-gray-400 text-sm">Chưa có chủ vườn nào</p>}
-          {filtered.map((o) => (
+          {fetching ? (
+            [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+          ) : filtered.length === 0 ? (
+            <p className="text-center py-12 text-gray-400 text-sm">Chưa có chủ vườn nào</p>
+          ) : filtered.map((o) => (
             <div key={o.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
@@ -115,8 +121,11 @@ export default function OwnersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">Chưa có chủ vườn nào</td></tr>}
-              {filtered.map((o) => (
+              {fetching ? (
+                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={6} />)
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">Chưa có chủ vườn nào</td></tr>
+              ) : filtered.map((o) => (
                 <tr key={o.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">{o.name}</td>
                   <td className="px-6 py-4 text-gray-600 text-sm">{o.age || "—"}</td>

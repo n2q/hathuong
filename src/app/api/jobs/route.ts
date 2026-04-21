@@ -9,16 +9,20 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
 
-  const jobs = await prisma.job.findMany({
-    where: status ? { status: status as "ACTIVE" | "COMPLETED" | "CANCELLED" } : undefined,
-    orderBy: { startDate: "desc" },
-    include: {
-      owner: true,
-      _count: { select: { assignments: true } },
-    },
-  });
-
-  return NextResponse.json(jobs);
+  try {
+    const jobs = await prisma.job.findMany({
+      where: status ? { status: status as "ACTIVE" | "COMPLETED" | "CANCELLED" } : undefined,
+      orderBy: [{ startDate: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
+      include: {
+        owner: true,
+        _count: { select: { assignments: true } },
+      },
+    });
+    return NextResponse.json(jobs);
+  } catch (err) {
+    console.error("[jobs GET]", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

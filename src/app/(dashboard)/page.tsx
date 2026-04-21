@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Header from "@/components/layout/Header";
 import { formatCurrency } from "@/lib/utils";
+import { SkeletonStatCard } from "@/components/ui/Skeleton";
 import {
   Users,
   Briefcase,
@@ -56,6 +57,7 @@ function StatCard({
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [fetching, setFetching] = useState(true);
   const [from, setFrom] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
@@ -63,9 +65,10 @@ export default function DashboardPage() {
   const [to, setTo] = useState(() => new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
+    setFetching(true);
     fetch(`/api/dashboard?from=${from}&to=${to}`)
       .then((r) => r.json())
-      .then(setData);
+      .then((d) => { setData(d); setFetching(false); });
   }, [from, to]);
 
   return (
@@ -94,66 +97,22 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-          <StatCard
-            title="Đang làm hôm nay"
-            value={data?.workingToday ?? "—"}
-            icon={Users}
-            color="bg-blue-500"
-            sub="công nhân có mặt"
-          />
-          <StatCard
-            title="Lịch làm ngày mai"
-            value={data?.scheduledTomorrow ?? "—"}
-            icon={CalendarDays}
-            color="bg-purple-500"
-            sub="công nhân dự kiến"
-          />
-          <StatCard
-            title="Việc đang hoạt động"
-            value={data?.activeJobs ?? "—"}
-            icon={Briefcase}
-            color="bg-orange-500"
-            sub="công việc"
-          />
-          <StatCard
-            title="Tổng công nhân"
-            value={data?.totalWorkers ?? "—"}
-            icon={UserCheck}
-            color="bg-green-500"
-            sub={`${data?.totalOwners ?? "—"} chủ vườn`}
-          />
+          {fetching ? [...Array(4)].map((_, i) => <SkeletonStatCard key={i} />) : (<>
+            <StatCard title="Đang làm hôm nay" value={data?.workingToday ?? "—"} icon={Users} color="bg-blue-500" sub="công nhân có mặt" />
+            <StatCard title="Lịch làm ngày mai" value={data?.scheduledTomorrow ?? "—"} icon={CalendarDays} color="bg-purple-500" sub="công nhân dự kiến" />
+            <StatCard title="Việc đang hoạt động" value={data?.activeJobs ?? "—"} icon={Briefcase} color="bg-orange-500" sub="công việc" />
+            <StatCard title="Tổng công nhân" value={data?.totalWorkers ?? "—"} icon={UserCheck} color="bg-green-500" sub={`${data?.totalOwners ?? "—"} chủ vườn`} />
+          </>)}
         </div>
 
         <h3 className="text-sm font-semibold text-gray-600 mb-3">Tài chính kỳ đã chọn</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
-            title="Doanh thu"
-            value={data ? formatCurrency(data.totalRevenue) : "—"}
-            icon={TrendingUp}
-            color="bg-green-500"
-            sub="chủ vườn trả"
-          />
-          <StatCard
-            title="Lương công nhân"
-            value={data ? formatCurrency(data.totalCost) : "—"}
-            icon={TrendingDown}
-            color="bg-orange-500"
-            sub="trả cho công nhân"
-          />
-          <StatCard
-            title="Chi phí khác"
-            value={data ? formatCurrency(data.totalExpenses) : "—"}
-            icon={Receipt}
-            color="bg-red-500"
-            sub="xăng, ăn uống, v.v."
-          />
-          <StatCard
-            title="Lợi nhuận ròng"
-            value={data ? formatCurrency(data.netProfit) : "—"}
-            icon={DollarSign}
-            color={data && data.netProfit >= 0 ? "bg-blue-600" : "bg-red-600"}
-            sub="sau tất cả chi phí"
-          />
+          {fetching ? [...Array(4)].map((_, i) => <SkeletonStatCard key={i} />) : (<>
+            <StatCard title="Doanh thu" value={data ? formatCurrency(data.totalRevenue) : "—"} icon={TrendingUp} color="bg-green-500" sub="chủ vườn trả" />
+            <StatCard title="Lương công nhân" value={data ? formatCurrency(data.totalCost) : "—"} icon={TrendingDown} color="bg-orange-500" sub="trả cho công nhân" />
+            <StatCard title="Chi phí khác" value={data ? formatCurrency(data.totalExpenses) : "—"} icon={Receipt} color="bg-red-500" sub="xăng, ăn uống, v.v." />
+            <StatCard title="Lợi nhuận ròng" value={data ? formatCurrency(data.netProfit) : "—"} icon={DollarSign} color={data && data.netProfit >= 0 ? "bg-blue-600" : "bg-red-600"} sub="sau tất cả chi phí" />
+          </>)}
         </div>
 
         <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl px-6 py-4 flex flex-wrap items-center gap-6 text-sm">
