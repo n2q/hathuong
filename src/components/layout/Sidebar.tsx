@@ -13,6 +13,7 @@ import {
   LogOut,
   Sprout,
   X,
+  Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,11 +38,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
     <aside className="flex flex-col w-64 min-h-screen bg-gray-900 text-white">
       <div className="flex items-center justify-between px-5 py-5 border-b border-gray-700">
         <div className="flex items-center gap-3">
-          <Sprout className="text-green-400 shrink-0" size={26} />
-          <div>
-            <h1 className="font-bold text-lg leading-tight">Hà Thương</h1>
-            <p className="text-xs text-gray-400">Môi giới lao động</p>
-          </div>
+          <Crown className="text-green-400 shrink-0" size={26} />
+          <h1 className="font-bold text-lg leading-tight">Hà Thương</h1>
         </div>
         {/* Close button — only on mobile */}
         {onClose && (

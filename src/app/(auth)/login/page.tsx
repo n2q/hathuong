@@ -73,10 +73,6 @@ export default function LoginPage() {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
         </form>
-
-        <p className="text-xs text-center text-gray-400 mt-6">
-          Tài khoản mặc định: admin@hathuong.com / admin123
-        </p>
       </div>
     </div>
   );

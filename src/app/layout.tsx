@@ -6,7 +6,7 @@ import Providers from "@/components/Providers";
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 
 export const metadata: Metadata = {
-  title: "Hà Thương - Môi giới lao động",
+  title: "Hà Thương",
   description: "Hệ thống quản lý lao động nông nghiệp",
 };
 
