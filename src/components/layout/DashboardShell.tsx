@@ -9,7 +9,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   return (
     <SidebarContext.Provider value={ctx}>
-      <div className="flex h-full min-h-screen">
+      <div className="flex h-full">
         {/* Mobile overlay backdrop */}
         {open && (
           <div
@@ -27,7 +27,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           <Sidebar onClose={() => setOpen(false)} />
         </div>
 
-        <main className="flex-1 flex flex-col min-h-screen overflow-auto bg-gray-50 min-w-0">
+        <main className="flex-1 flex flex-col overflow-y-auto bg-gray-50 min-w-0">
           {children}
         </main>
       </div>
