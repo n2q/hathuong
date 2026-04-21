@@ -46,10 +46,10 @@ model Job {
   name        String
   description String?
   location    String?
-  startDate   DateTime
+  startDate   DateTime?
   endDate     DateTime?
-  ownerRate   Decimal      @db.Decimal(10, 2)
-  workerRate  Decimal      @db.Decimal(10, 2)
+  ownerRate   Decimal?     @db.Decimal(10, 2)
+  workerRate  Decimal?     @db.Decimal(10, 2)
   status      JobStatus    @default(ACTIVE)
   ownerId     String
   owner       Owner        @relation(fields: [ownerId], references: [id])

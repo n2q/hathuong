@@ -11,7 +11,7 @@ import AssignWorkerModal from "@/components/AssignWorkerModal";
 interface Owner { id: string; name: string; }
 interface Job {
   id: string; name: string; description: string | null; location: string | null;
-  startDate: string; endDate: string | null; ownerRate: string; workerRate: string;
+  startDate: string | null; endDate: string | null; ownerRate: string | null; workerRate: string | null;
   status: "ACTIVE" | "COMPLETED" | "CANCELLED"; owner: Owner; _count: { assignments: number };
 }
 
@@ -49,8 +49,8 @@ export default function JobsPage() {
     setEditJob(j);
     setForm({
       name: j.name, description: j.description || "", location: j.location || "",
-      startDate: j.startDate.split("T")[0], endDate: j.endDate ? j.endDate.split("T")[0] : "",
-      ownerRate: j.ownerRate, workerRate: j.workerRate, ownerId: j.owner.id, status: j.status,
+      startDate: j.startDate ? j.startDate.split("T")[0] : "", endDate: j.endDate ? j.endDate.split("T")[0] : "",
+      ownerRate: j.ownerRate ?? "", workerRate: j.workerRate ?? "", ownerId: j.owner.id, status: j.status,
     });
     setModalOpen(true);
   }
@@ -103,15 +103,15 @@ export default function JobsPage() {
                   <div className="flex flex-wrap gap-3 mt-2">
                     <div className="text-xs">
                       <span className="text-gray-400">Chủ trả: </span>
-                      <span className="font-semibold text-green-700">{formatCurrency(Number(j.ownerRate))}</span>
+                      <span className="font-semibold text-green-700">{j.ownerRate != null ? formatCurrency(Number(j.ownerRate)) : "—"}</span>
                     </div>
                     <div className="text-xs">
                       <span className="text-gray-400">CN nhận: </span>
-                      <span className="font-semibold text-blue-700">{formatCurrency(Number(j.workerRate))}</span>
+                      <span className="font-semibold text-blue-700">{j.workerRate != null ? formatCurrency(Number(j.workerRate)) : "—"}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
-                    <span>{formatDate(j.startDate)}{j.endDate ? ` → ${formatDate(j.endDate)}` : ""}</span>
+                    <span>{j.startDate ? formatDate(j.startDate) : ""}{j.endDate ? ` → ${formatDate(j.endDate)}` : ""}</span>
                     <span className="flex items-center gap-0.5"><Users size={11} />{j._count.assignments} CN</span>
                   </div>
                 </div>
@@ -145,11 +145,11 @@ export default function JobsPage() {
                   <td className="px-6 py-4 font-medium text-gray-900">{j.name}</td>
                   <td className="px-6 py-4 text-gray-600 text-sm">{j.owner.name}</td>
                   <td className="px-6 py-4 text-gray-600 text-sm">{j.location ? <span className="flex items-center gap-1"><MapPin size={12} />{j.location}</span> : "—"}</td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(j.startDate)}{j.endDate ? ` → ${formatDate(j.endDate)}` : ""}</td>
+                  <td className="px-6 py-4 text-gray-600 text-sm">{j.startDate ? formatDate(j.startDate) : "—"}{j.endDate ? ` → ${formatDate(j.endDate)}` : ""}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className="text-green-700 font-medium">{formatCurrency(Number(j.ownerRate))}</span>
+                    <span className="text-green-700 font-medium">{j.ownerRate != null ? formatCurrency(Number(j.ownerRate)) : "—"}</span>
                     <span className="text-gray-400 mx-1">/</span>
-                    <span className="text-blue-700 font-medium">{formatCurrency(Number(j.workerRate))}</span>
+                    <span className="text-blue-700 font-medium">{j.workerRate != null ? formatCurrency(Number(j.workerRate)) : "—"}</span>
                   </td>
                   <td className="px-6 py-4 text-gray-600 text-sm">{j._count.assignments}</td>
                   <td className="px-6 py-4"><Badge variant={statusVariant[j.status]}>{statusLabel[j.status]}</Badge></td>
@@ -193,28 +193,28 @@ export default function JobsPage() {
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Ngày bắt đầu *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Ngày bắt đầu</label>
               <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                className="w-full appearance-none border border-gray-300 rounded-lg px-3 h-11 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Ngày kết thúc</label>
               <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full appearance-none border border-gray-300 rounded-lg px-3 h-11 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Chủ trả/ngày *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Chủ trả/ngày</label>
               <input type="number" value={form.ownerRate} onChange={(e) => setForm({ ...form, ownerRate: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">CN nhận/ngày *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">CN nhận/ngày</label>
               <input type="number" value={form.workerRate} onChange={(e) => setForm({ ...form, workerRate: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
           <div>

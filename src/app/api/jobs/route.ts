@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { name, description, location, startDate, endDate, ownerRate, workerRate, ownerId, status } = body;
 
-  if (!name || !ownerId || !startDate || !ownerRate || !workerRate) {
+  if (!name || !ownerId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -37,10 +37,10 @@ export async function POST(req: NextRequest) {
       name,
       description,
       location,
-      startDate: new Date(startDate),
+      startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
-      ownerRate: Number(ownerRate),
-      workerRate: Number(workerRate),
+      ownerRate: ownerRate !== "" && ownerRate != null ? Number(ownerRate) : null,
+      workerRate: workerRate !== "" && workerRate != null ? Number(workerRate) : null,
       ownerId,
       status: status || "ACTIVE",
     },

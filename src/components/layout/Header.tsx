@@ -23,11 +23,6 @@ export default function Header({ title }: HeaderProps) {
       </button>
 
       <h2 className="flex-1 text-lg font-semibold text-gray-800 truncate">{title}</h2>
-
-      <div className="flex items-center gap-1.5 text-sm text-gray-500">
-        <User size={15} />
-        <span className="hidden sm:inline">{session?.user?.name || "Admin"}</span>
-      </div>
     </header>
   );
 }

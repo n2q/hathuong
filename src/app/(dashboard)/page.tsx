@@ -72,14 +72,14 @@ export default function DashboardPage() {
     <>
       <Header title="Dashboard" />
       <div className="flex-1 p-4 md:p-6">
-        <div className="flex gap-3 mb-5">
+        <div className="flex flex-col sm:flex-row gap-2 mb-5">
           <div className="flex-1">
             <label className="block text-xs text-gray-500 mb-1">Từ ngày</label>
             <input
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full appearance-none border border-gray-300 rounded-lg px-3 h-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex-1">
@@ -88,7 +88,7 @@ export default function DashboardPage() {
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full appearance-none border border-gray-300 rounded-lg px-3 h-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
