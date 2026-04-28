@@ -15,7 +15,6 @@ export async function GET(req: NextRequest) {
       orderBy: [{ startDate: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
       include: {
         owner: true,
-        _count: { select: { assignments: true } },
       },
     });
     return NextResponse.json(jobs);

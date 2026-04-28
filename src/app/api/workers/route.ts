@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
   const workers = await prisma.worker.findMany({
     where: status ? { status: status as "ACTIVE" | "INACTIVE" } : undefined,
     orderBy: { name: "asc" },
-    include: { _count: { select: { assignments: true } } },
   });
 
   return NextResponse.json(workers);

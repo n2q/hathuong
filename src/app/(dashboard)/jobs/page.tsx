@@ -4,16 +4,15 @@ import Header from "@/components/layout/Header";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
-import { Plus, Pencil, Trash2, Search, MapPin, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, MapPin } from "lucide-react";
 import { SkeletonCard, SkeletonRow } from "@/components/ui/Skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import AssignWorkerModal from "@/components/AssignWorkerModal";
 
 interface Owner { id: string; name: string; }
 interface Job {
   id: string; name: string; description: string | null; location: string | null;
   startDate: string | null; endDate: string | null; ownerRate: string | null; workerRate: string | null;
-  status: "ACTIVE" | "COMPLETED" | "CANCELLED"; owner: Owner; _count: { assignments: number };
+  status: "ACTIVE" | "COMPLETED" | "CANCELLED"; owner: Owner;
 }
 
 const emptyForm = {
@@ -29,7 +28,6 @@ export default function JobsPage() {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [assignJobId, setAssignJobId] = useState<string | null>(null);
   const [editJob, setEditJob] = useState<Job | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
@@ -118,14 +116,9 @@ export default function JobsPage() {
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
                     <span>{j.startDate ? formatDate(j.startDate) : ""}{j.endDate ? ` → ${formatDate(j.endDate)}` : ""}</span>
-                    <span className="flex items-center gap-0.5"><Users size={11} />{j._count.assignments} CN</span>
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0">
-                  <button onClick={() => setAssignJobId(j.id)}
-                    className="p-2.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors" title="Phân công">
-                    <Users size={16} />
-                  </button>
                   <button onClick={() => openEdit(j)} className="p-2.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"><Pencil size={16} /></button>
                   <button onClick={() => setDeleteId(j.id)} className="p-2.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"><Trash2 size={16} /></button>
                 </div>
@@ -139,16 +132,16 @@ export default function JobsPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {["Tên việc", "Chủ vườn", "Địa điểm", "Thời gian", "Giá chủ / CN", "CN", "Trạng thái", ""].map((h) => (
+                {["Tên việc", "Chủ vườn", "Địa điểm", "Thời gian", "Giá chủ / CN", "Trạng thái", ""].map((h) => (
                   <th key={h} className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {fetching ? (
-                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={8} />)
+                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={7} />)
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-12 text-gray-400 text-sm">Chưa có công việc nào</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm">Chưa có công việc nào</td></tr>
               ) : filtered.map((j) => (
                 <tr key={j.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">{j.name}</td>
@@ -160,11 +153,9 @@ export default function JobsPage() {
                     <span className="text-gray-400 mx-1">/</span>
                     <span className="text-blue-700 font-medium">{j.workerRate != null ? formatCurrency(Number(j.workerRate)) : "—"}</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">{j._count.assignments}</td>
                   <td className="px-6 py-4"><Badge variant={statusVariant[j.status]}>{statusLabel[j.status]}</Badge></td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1 justify-end">
-                      <button onClick={() => setAssignJobId(j.id)} className="text-gray-400 hover:text-green-600 p-1" title="Phân công"><Users size={15} /></button>
                       <button onClick={() => openEdit(j)} className="text-gray-400 hover:text-blue-600 p-1"><Pencil size={15} /></button>
                       <button onClick={() => setDeleteId(j.id)} className="text-gray-400 hover:text-red-600 p-1"><Trash2 size={15} /></button>
                     </div>
@@ -250,9 +241,6 @@ export default function JobsPage() {
         </div>
       </Modal>
 
-      {assignJobId && (
-        <AssignWorkerModal jobId={assignJobId} onClose={() => { setAssignJobId(null); fetchJobs(); }} />
-      )}
     </>
   );
 }

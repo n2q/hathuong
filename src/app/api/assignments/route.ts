@@ -9,8 +9,24 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobId = searchParams.get("jobId");
 
+  if (jobId) {
+    const activeWorkers = await prisma.worker.findMany({
+      where: { status: "ACTIVE" },
+      select: { id: true },
+    });
+    await Promise.all(
+      activeWorkers.map((w) =>
+        prisma.assignment.upsert({
+          where: { jobId_workerId: { jobId, workerId: w.id } },
+          create: { jobId, workerId: w.id },
+          update: {},
+        })
+      )
+    );
+  }
+
   const assignments = await prisma.assignment.findMany({
-    where: jobId ? { jobId } : undefined,
+    where: jobId ? { jobId, worker: { status: "ACTIVE" } } : undefined,
     include: {
       worker: true,
       job: { include: { owner: true } },
@@ -18,47 +34,4 @@ export async function GET(req: NextRequest) {
   });
 
   return NextResponse.json(assignments);
-}
-
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const body = await req.json();
-  const { jobId, workerIds } = body;
-
-  if (!jobId || !workerIds?.length) {
-    return NextResponse.json({ error: "jobId and workerIds are required" }, { status: 400 });
-  }
-
-  const results = await Promise.allSettled(
-    workerIds.map((workerId: string) =>
-      prisma.assignment.upsert({
-        where: { jobId_workerId: { jobId, workerId } },
-        create: { jobId, workerId },
-        update: {},
-        include: { worker: true },
-      })
-    )
-  );
-
-  const created = results
-    .filter((r) => r.status === "fulfilled")
-    .map((r) => (r as PromiseFulfilledResult<unknown>).value);
-
-  return NextResponse.json(created, { status: 201 });
-}
-
-export async function DELETE(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const body = await req.json();
-  const { jobId, workerId } = body;
-
-  await prisma.assignment.delete({
-    where: { jobId_workerId: { jobId, workerId } },
-  });
-
-  return NextResponse.json({ success: true });
 }

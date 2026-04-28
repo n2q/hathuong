@@ -14,7 +14,6 @@ interface Worker {
   address: string | null;
   phone: string | null;
   status: "ACTIVE" | "INACTIVE";
-  _count: { assignments: number };
 }
 
 const emptyForm = { name: "", age: "", address: "", phone: "", status: "ACTIVE" };
@@ -122,7 +121,6 @@ export default function WorkersPage() {
                       </p>
                     )}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1.5">{w._count.assignments} công việc</p>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <button onClick={() => openEdit(w)}
@@ -148,16 +146,15 @@ export default function WorkersPage() {
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Tuổi</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Liên hệ</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Địa chỉ</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Việc</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Trạng thái</th>
                 <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {fetching ? (
-                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={7} />)
+                [...Array(5)].map((_, i) => <SkeletonRow key={i} cells={6} />)
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm">Chưa có công nhân nào</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">Chưa có công nhân nào</td></tr>
               ) : filtered.map((w) => (
                 <tr key={w.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">{w.name}</td>
@@ -168,7 +165,6 @@ export default function WorkersPage() {
                   <td className="px-6 py-4 text-gray-600 text-sm">
                     {w.address ? <span className="flex items-center gap-1"><MapPin size={12} />{w.address}</span> : "—"}
                   </td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">{w._count.assignments}</td>
                   <td className="px-6 py-4">
                     <Badge variant={w.status === "ACTIVE" ? "green" : "gray"}>
                       {w.status === "ACTIVE" ? "Hoạt động" : "Nghỉ"}
