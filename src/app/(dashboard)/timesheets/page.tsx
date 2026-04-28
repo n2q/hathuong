@@ -6,18 +6,16 @@ import { CheckCircle, XCircle, Save } from "lucide-react";
 
 interface Job { id: string; name: string; owner: { name: string }; }
 interface Worker { id: string; name: string; }
-interface Assignment { id: string; worker: Worker; }
-interface TimesheetEntry { assignmentId: string; status: "PRESENT" | "ABSENT" }
 
 export default function TimesheetsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [workers, setWorkers] = useState<Worker[]>([]);
   const [attendance, setAttendance] = useState<Record<string, "PRESENT" | "ABSENT">>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [loadingWorkers, setLoadingWorkers] = useState(false);
 
   useEffect(() => {
     fetch("/api/jobs?status=ACTIVE")
@@ -27,37 +25,38 @@ export default function TimesheetsPage() {
 
   const loadAttendance = useCallback(async () => {
     if (!selectedJob) return;
-    setLoadingAssignments(true);
-    const [assignRes, tsRes] = await Promise.all([
-      fetch(`/api/assignments?jobId=${selectedJob}`),
+    setLoadingWorkers(true);
+    const [workerRes, tsRes] = await Promise.all([
+      fetch("/api/workers?status=ACTIVE"),
       fetch(`/api/timesheets?jobId=${selectedJob}&date=${selectedDate}`),
     ]);
-    const assignData: Assignment[] = assignRes.ok ? await assignRes.json() : [];
-    const tsData: { assignmentId: string; status: "PRESENT" | "ABSENT" }[] = tsRes.ok ? await tsRes.json() : [];
-    setAssignments(assignData);
+    const workerData: Worker[] = workerRes.ok ? await workerRes.json() : [];
+    const tsData: { workerId: string; status: "PRESENT" | "ABSENT" }[] = tsRes.ok ? await tsRes.json() : [];
+    setWorkers(workerData);
     const map: Record<string, "PRESENT" | "ABSENT"> = {};
-    for (const a of assignData) map[a.id] = "PRESENT";
-    for (const ts of tsData) map[ts.assignmentId] = ts.status;
+    for (const w of workerData) map[w.id] = "PRESENT";
+    for (const ts of tsData) map[ts.workerId] = ts.status;
     setAttendance(map);
-    setLoadingAssignments(false);
+    setLoadingWorkers(false);
   }, [selectedJob, selectedDate]);
 
   useEffect(() => { loadAttendance(); }, [loadAttendance]);
 
-  function toggle(assignmentId: string) {
+  function toggle(workerId: string) {
     setAttendance((prev) => ({
       ...prev,
-      [assignmentId]: prev[assignmentId] === "PRESENT" ? "ABSENT" : "PRESENT",
+      [workerId]: prev[workerId] === "PRESENT" ? "ABSENT" : "PRESENT",
     }));
     setSaved(false);
   }
 
   async function handleSave() {
     setSaving(true);
-    const entries: TimesheetEntry[] = assignments.map((a) => ({
-      assignmentId: a.id,
+    const entries = workers.map((w) => ({
+      jobId: selectedJob,
+      workerId: w.id,
       date: selectedDate,
-      status: attendance[a.id] || "PRESENT",
+      status: attendance[w.id] || "PRESENT",
     }));
     await fetch("/api/timesheets", {
       method: "POST",
@@ -69,14 +68,13 @@ export default function TimesheetsPage() {
     setTimeout(() => setSaved(false), 3000);
   }
 
-  const presentCount = assignments.filter((a) => attendance[a.id] !== "ABSENT").length;
-  const absentCount = assignments.length - presentCount;
+  const presentCount = workers.filter((w) => attendance[w.id] !== "ABSENT").length;
+  const absentCount = workers.length - presentCount;
 
   return (
     <>
       <Header title="Chấm công" />
       <div className="flex-1 p-4 md:p-6">
-        {/* Filters */}
         <div className="space-y-3 mb-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Công việc</label>
@@ -97,19 +95,18 @@ export default function TimesheetsPage() {
           <div className="bg-white rounded-xl p-10 text-center text-gray-400 border border-gray-100 shadow-sm">
             <p className="text-sm">Chọn công việc để bắt đầu chấm công</p>
           </div>
-        ) : loadingAssignments ? (
+        ) : loadingWorkers ? (
           <div className="space-y-2">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse h-14 bg-gray-200 rounded-xl" />
             ))}
           </div>
-        ) : assignments.length === 0 ? (
+        ) : workers.length === 0 ? (
           <div className="bg-white rounded-xl p-10 text-center text-gray-400 border border-gray-100 shadow-sm">
-            <p className="text-sm">Công việc này chưa có công nhân được phân công</p>
+            <p className="text-sm">Chưa có công nhân hoạt động</p>
           </div>
         ) : (
           <>
-            {/* Summary bar */}
             <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium">
                 <CheckCircle size={14} />{presentCount} có mặt
@@ -117,18 +114,17 @@ export default function TimesheetsPage() {
               <div className="flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1.5 rounded-full text-sm font-medium">
                 <XCircle size={14} />{absentCount} vắng
               </div>
-              <span className="text-sm text-gray-400 ml-auto">{assignments.length} tổng</span>
+              <span className="text-sm text-gray-400 ml-auto">{workers.length} tổng</span>
             </div>
 
-            {/* Worker list — card-based on all sizes for easy tapping */}
             <div className="space-y-2 mb-5">
-              {assignments.map((a) => {
-                const isPresent = attendance[a.id] !== "ABSENT";
+              {workers.map((w) => {
+                const isPresent = attendance[w.id] !== "ABSENT";
                 return (
                   <button
-                    key={a.id}
+                    key={w.id}
                     type="button"
-                    onClick={() => toggle(a.id)}
+                    onClick={() => toggle(w.id)}
                     className={`w-full flex items-center justify-between px-4 py-4 rounded-xl border-2 transition-colors text-left ${isPresent
                         ? "border-green-300 bg-green-50"
                         : "border-red-200 bg-red-50"
@@ -139,7 +135,7 @@ export default function TimesheetsPage() {
                         ? <CheckCircle size={22} className="text-green-500 shrink-0" />
                         : <XCircle size={22} className="text-red-400 shrink-0" />
                       }
-                      <span className="font-medium text-gray-900">{a.worker.name}</span>
+                      <span className="font-medium text-gray-900">{w.name}</span>
                     </div>
                     <span className={`text-sm font-medium px-3 py-1 rounded-full ${isPresent ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
                       }`}>

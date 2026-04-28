@@ -26,7 +26,9 @@ export async function GET(req: NextRequest) {
     orderBy: { date: "desc" },
   });
 
-  return NextResponse.json(timesheets);
+  return NextResponse.json(
+    timesheets.map((ts) => ({ ...ts, workerId: ts.assignment.workerId }))
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -35,20 +37,25 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { entries } = body;
-  // entries: [{ assignmentId, date, status }]
+  // entries: [{ jobId, workerId, date, status }]
 
   if (!entries?.length) {
     return NextResponse.json({ error: "entries array is required" }, { status: 400 });
   }
 
   const results = await Promise.all(
-    entries.map(({ assignmentId, date, status }: { assignmentId: string; date: string; status: string }) =>
-      prisma.timesheet.upsert({
-        where: { assignmentId_date: { assignmentId, date: new Date(date) } },
-        create: { assignmentId, date: new Date(date), status: status as "PRESENT" | "ABSENT" },
+    entries.map(async ({ jobId, workerId, date, status }: { jobId: string; workerId: string; date: string; status: string }) => {
+      const assignment = await prisma.assignment.upsert({
+        where: { jobId_workerId: { jobId, workerId } },
+        create: { jobId, workerId },
+        update: {},
+      });
+      return prisma.timesheet.upsert({
+        where: { assignmentId_date: { assignmentId: assignment.id, date: new Date(date) } },
+        create: { assignmentId: assignment.id, date: new Date(date), status: status as "PRESENT" | "ABSENT" },
         update: { status: status as "PRESENT" | "ABSENT" },
-      })
-    )
+      });
+    })
   );
 
   return NextResponse.json(results);
