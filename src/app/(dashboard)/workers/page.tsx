@@ -85,7 +85,7 @@ export default function WorkersPage() {
               className="pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-56"
             />
           </div>
-          <Button onClick={openCreate} size="sm">
+          <Button onClick={openCreate} size="md">
             <Plus size={15} className="mr-1" />
             <span className="hidden sm:inline">Thêm</span>
             <span className="sm:hidden">Thêm</span>

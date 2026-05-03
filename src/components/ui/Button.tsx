@@ -22,7 +22,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           },
           {
             "px-2.5 py-1.5 text-sm": size === "sm",
-            "px-4 py-2 text-sm": size === "md",
+            "px-4 py-2.5 text-sm": size === "md",
             "px-6 py-3 text-base": size === "lg",
           },
           className

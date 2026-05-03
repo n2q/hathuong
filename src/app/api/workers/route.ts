@@ -9,10 +9,20 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
 
-  const workers = await prisma.worker.findMany({
-    where: status ? { status: status as "ACTIVE" | "INACTIVE" } : undefined,
-    orderBy: { name: "asc" },
-  });
+  const workers = status
+    ? await prisma.$queryRaw`
+        SELECT * FROM "Worker"
+        WHERE status = ${status}::"WorkerStatus"
+        ORDER BY
+          regexp_replace(name, '[0-9]+$', '') ASC,
+          CASE WHEN name ~ '[0-9]+' THEN (regexp_match(name, '[0-9]+'))[1]::int ELSE 0 END ASC
+      `
+    : await prisma.$queryRaw`
+        SELECT * FROM "Worker"
+        ORDER BY
+          regexp_replace(name, '[0-9]+$', '') ASC,
+          CASE WHEN name ~ '[0-9]+' THEN (regexp_match(name, '[0-9]+'))[1]::int ELSE 0 END ASC
+      `;
 
   return NextResponse.json(workers);
 }

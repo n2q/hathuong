@@ -42,6 +42,15 @@ export default function TimesheetsPage() {
 
   useEffect(() => { loadAttendance(); }, [loadAttendance]);
 
+  function selectAll() {
+    const allPresent = workers.every((w) => attendance[w.id] !== "ABSENT");
+    const next = allPresent ? "ABSENT" : "PRESENT";
+    const map: Record<string, "PRESENT" | "ABSENT"> = {};
+    for (const w of workers) map[w.id] = next;
+    setAttendance(map);
+    setSaved(false);
+  }
+
   function toggle(workerId: string) {
     setAttendance((prev) => ({
       ...prev,
@@ -107,14 +116,20 @@ export default function TimesheetsPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={selectAll}
+              className="inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 px-2.5 py-1.5 text-sm"
+            >
+              {presentCount === workers.length ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+            </button>
+            <div className="flex items-center gap-3 mb-4 mt-5">
               <div className="flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium">
                 <CheckCircle size={14} />{presentCount} có mặt
               </div>
               <div className="flex items-center gap-1.5 bg-red-100 text-red-700 px-3 py-1.5 rounded-full text-sm font-medium">
                 <XCircle size={14} />{absentCount} vắng
               </div>
-              <span className="text-sm text-gray-400 ml-auto">{workers.length} tổng</span>
+              <span className="text-sm text-gray-400">{workers.length} tổng</span>
             </div>
 
             <div className="space-y-2 mb-5">
@@ -126,8 +141,8 @@ export default function TimesheetsPage() {
                     type="button"
                     onClick={() => toggle(w.id)}
                     className={`w-full flex items-center justify-between px-4 py-4 rounded-xl border-2 transition-colors text-left ${isPresent
-                        ? "border-green-300 bg-green-50"
-                        : "border-red-200 bg-red-50"
+                      ? "border-green-300 bg-green-50"
+                      : "border-red-200 bg-red-50"
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -146,13 +161,18 @@ export default function TimesheetsPage() {
               })}
             </div>
 
-            <Button onClick={handleSave} disabled={saving} size="lg" className="w-full">
-              <Save size={17} className="mr-2" />
-              {saving ? "Đang lưu..." : saved ? "Đã lưu ✓" : "Lưu chấm công"}
-            </Button>
           </>
         )}
       </div>
+
+      {workers.length > 0 && selectedJob && (
+        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-4 py-3 md:px-6">
+          <Button onClick={handleSave} disabled={saving} size="lg" className="w-full">
+            <Save size={17} className="mr-2" />
+            {saving ? "Đang lưu..." : saved ? "Đã lưu ✓" : "Lưu chấm công"}
+          </Button>
+        </div>
+      )}
     </>
   );
 }

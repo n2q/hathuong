@@ -70,7 +70,7 @@ export default function OwnersPage() {
             <input type="text" placeholder="Tìm tên, SĐT..." value={search} onChange={(e) => setSearch(e.target.value)}
               className="pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-56" />
           </div>
-          <Button onClick={openCreate} size="sm"><Plus size={15} className="mr-1" />Thêm</Button>
+          <Button onClick={openCreate} size="md"><Plus size={15} className="mr-1" />Thêm</Button>
         </div>
 
         {/* Mobile cards */}

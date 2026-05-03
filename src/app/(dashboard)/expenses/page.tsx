@@ -116,7 +116,7 @@ export default function ExpensesPage() {
             <option value="">Tất cả</option>
             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
-          <Button onClick={openCreate} size="sm"><Plus size={15} /></Button>
+          <Button onClick={openCreate} size="lg"><Plus size={15} /></Button>
         </div>
 
         {/* Summary */}
